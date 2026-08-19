@@ -1,0 +1,28 @@
+{
+  "init": {
+    "darwin": "npm install -g @oumomo/cli",
+    "linux": "npm install -g @oumomo/cli",
+    "win32": "npm install -g @oumomo/cli"
+  },
+  "auth": {
+    "darwin": "oumomo auth login",
+    "linux": "oumomo auth login",
+    "win32": "oumomo auth login"
+  },
+  "unAuth": {
+    "darwin": "oumomo logout",
+    "linux": "oumomo logout",
+    "win32": "oumomo logout"
+  },
+  "status": {
+    "darwin": "oumomo auth status",
+    "linux": "oumomo auth status",
+    "win32": "oumomo auth status"
+  },
+  "statusMatchJson": { "authenticated": true },
+  "authDeviceFlow": {
+    "uriPattern": "(https?://[^\\s]+/oauth/device[^\\s]*)",
+    "defaultExpiresInSeconds": 600,
+    "codeEmbeddedInUri": false
+  }
+}

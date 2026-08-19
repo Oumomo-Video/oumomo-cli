@@ -1,0 +1,14 @@
+{
+  "name": "Oumomo",
+  "name_zh": "欧莫莫",
+  "name_en": "Oumomo",
+  "description": "Use Oumomo's documented video workflow APIs.",
+  "description_zh": "通过自然语言调用欧莫莫的公开视频工作流能力。",
+  "description_en": "Use Oumomo's public video workflow APIs with natural language.",
+  "source": "oumomo",
+  "type": "cli",
+  "version": "0.1.0",
+  "minWorkbuddyVersion": "5.0.0",
+  "examples_zh": ["帮我创建爆款复刻任务", "查询任务进度"],
+  "examples_en": ["Create a viral replica task", "Check task progress"]
+}
