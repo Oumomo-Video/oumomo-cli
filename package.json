@@ -4,7 +4,7 @@
   "description": "Public command-line client for Oumomo APIs.",
   "type": "module",
   "bin": { "oumomo": "dist/index.js" },
-  "files": ["dist", "README.md", "LICENSE", "SECURITY.md"],
+  "files": ["dist", "skills", "connectors", "docs", "README.md", "LICENSE", "SECURITY.md"],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
