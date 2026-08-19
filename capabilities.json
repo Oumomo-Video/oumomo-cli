@@ -1,0 +1,18 @@
+{
+  "version": "2026-08-19",
+  "capabilities": [
+    { "id": "viral-replica", "name_zh": "爆款复刻", "command": "oumomo viral-replica create", "availability": "ready", "durations": [10, 15, 30] },
+    { "id": "viral-remix", "name_zh": "爆款成片", "command": "oumomo viral-remix create", "availability": "preview" },
+    { "id": "url-to-video", "name_zh": "链接生视频", "command": "oumomo url-to-video create", "availability": "preview", "durations": [10, 15, 30] },
+    { "id": "prompt-reverse", "name_zh": "视频提示词反推", "command": "oumomo prompt-reverse create", "availability": "preview" },
+    { "id": "tiktok-slideshow", "name_zh": "TK图文带货", "command": "oumomo tiktok-slideshow create", "availability": "preview" },
+    { "id": "video-script", "name_zh": "爆款脚本生成", "command": "oumomo script create", "availability": "ready" },
+    { "id": "script-analyze", "name_zh": "视频脚本解析", "command": "oumomo script analyze", "availability": "preview" },
+    { "id": "amazon-tools", "name_zh": "亚马逊效率工具", "command": "oumomo amazon", "availability": "preview" },
+    { "id": "tiktok-product-tools", "name_zh": "TK商品标题图片工具", "command": "oumomo tiktok-product", "availability": "preview" },
+    { "id": "ai-video-tools", "name_zh": "AI视频工具", "command": "oumomo video", "availability": "preview" },
+    { "id": "digital-human", "name_zh": "数字人视频", "command": "oumomo avatar-video create", "availability": "preview" },
+    { "id": "tiktok-official", "name_zh": "TikTok 官方接口", "command": "oumomo tiktok", "availability": "preview" },
+    { "id": "product-detail-image", "name_zh": "商品主图和详情图", "command": "oumomo product-images create", "availability": "ready" }
+  ]
+}

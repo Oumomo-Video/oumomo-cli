@@ -20,3 +20,9 @@ Agent session.
 
 The first public business commands are `task get` and `viral-replica create`;
 their exact request schemas must be published before adding them to the CLI.
+
+## Capability availability
+
+`capabilities.json` is the public source of truth. `ready` means the public API,
+CLI command, authentication modes, and tests are available. `preview` means the
+intent and proposed command are public, but Agents must not execute it yet.

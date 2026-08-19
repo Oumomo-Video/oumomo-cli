@@ -2,6 +2,7 @@
 import { clearCredential, readCredential, writeCredential, type Credential } from './credentials.js';
 import { oauthDeviceLogin, passwordLogin, readPassword } from './auth.js';
 import { callPublicApi, type PublicCommand } from './api.js';
+import { listCapabilities } from './capabilities.js';
 
 const apiUrl = () => (process.env.OUMOMO_API_URL || 'https://www.oumomo.ai').replace(/\/$/, '');
 const out = (value: unknown) => process.stdout.write(`${typeof value === 'string' ? value : JSON.stringify(value)}\n`);
@@ -58,6 +59,7 @@ function help(): void {
   out('  oumomo script create --product <text-or-url> --region <code> --language <code> [--dry-run]');
   out('  oumomo product-images create --file <path> --region <code> --language <code> --prompt <text> [--dry-run]');
   out('  oumomo task get --id <task-id> [--dry-run]');
+  out('  oumomo capabilities list [--ready-only] [--json]');
 }
 
 async function loginPassword(args: string[]): Promise<void> {
@@ -92,6 +94,13 @@ async function main(args: string[]): Promise<void> {
     return;
   }
   if (args[0] === 'mcp' && args[1] === 'login') return loginMcp(args);
+  if (args[0] === 'capabilities' && args[1] === 'list') {
+    const capabilities = await listCapabilities();
+    const selected = args.includes('--ready-only') ? capabilities.filter((item) => item.availability === 'ready') : capabilities;
+    if (args.includes('--json')) out({ capabilities: selected });
+    else selected.forEach((item) => out(`${item.availability.padEnd(7)} ${item.name_zh} (${item.id}) - ${item.command}`));
+    return;
+  }
   if (['viral-replica', 'script', 'product-images', 'task'].includes(args[0])) return runPublicCommand(args);
   if (args[0] === 'logout') {
     await clearCredential();
