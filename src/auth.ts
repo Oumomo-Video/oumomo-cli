@@ -69,7 +69,7 @@ export async function passwordLogin(params: { apiUrl: string; account: string; p
 }
 
 export async function oauthDeviceLogin(params: { apiUrl: string; print: (value: string) => void }): Promise<Credential> {
-  const start = await postForm(`${params.apiUrl}/oauth/device/code`, { client_id: 'oumomo-cli', scope: 'oumomo:cli' });
+  const start = await postForm(`${params.apiUrl}/api/oauth/device/code`, { client_id: 'oumomo-cli', scope: 'oumomo:cli' });
   if (!start.response.ok) throw new Error(String(start.body.error_description || 'Unable to start OAuth login.'));
   const deviceCode = String(start.body.device_code || '');
   const userCode = String(start.body.user_code || '');
@@ -81,7 +81,7 @@ export async function oauthDeviceLogin(params: { apiUrl: string; print: (value: 
   params.print(`User code: ${userCode}`);
   const deadline = Date.now() + expiresIn * 1000;
   while (Date.now() < deadline) {
-    const token = await postForm(`${params.apiUrl}/oauth/token`, {
+    const token = await postForm(`${params.apiUrl}/api/oauth/token`, {
       grant_type: 'urn:ietf:params:oauth:grant-type:device_code', device_code: deviceCode, client_id: 'oumomo-cli',
     });
     if (token.response.ok) {

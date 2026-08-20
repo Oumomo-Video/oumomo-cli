@@ -6,9 +6,9 @@ and private BFF headers are forbidden dependencies.
 ## Authentication
 
 - `POST /api/user/login` for compatibility password login
-- `POST /oauth/device/code` for RFC 8628 device authorization
-- `GET /oauth/device` for browser verification and consent
-- `POST /oauth/token` for device token polling and refresh
+- `POST /api/oauth/device/code` for RFC 8628 device authorization
+- `GET /api/oauth/device` for browser verification and consent
+- `POST /api/oauth/token` for device token polling and refresh
 - `GET /api/user/userInfo` for session identity verification
 
 ## Stable command API
