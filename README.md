@@ -1,4 +1,6 @@
-# Oumomo Video Agent
+# Oumomo CLI
+
+[English](README.md) | [简体中文](README.zh-CN.md)
 
 [![npm version](https://img.shields.io/npm/v/oumomo-agent.svg)](https://www.npmjs.com/package/oumomo-agent)
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
@@ -36,12 +38,12 @@ your agent.
 Give the following message to Codex or another skill-compatible agent:
 
 ```text
-请安装并使用 Oumomo Video Agent，帮我完成爆款视频复刻和商品链接生成视频。
+Install and use Oumomo CLI to help me remake viral ecommerce videos and turn product links into new videos.
 
-Skill：https://github.com/Oumomo-Video/oumomo-cli/tree/main/skills/oumomo-video-replica
-CLI：npm install -g oumomo-agent && oumomo-agent setup
+Skill: https://github.com/Oumomo-Video/oumomo-cli/tree/main/skills/oumomo-video-replica
+CLI: npm install -g oumomo-agent && oumomo-agent setup
 
-请先安装 Skill 和 CLI，并让我在浏览器完成 Oumomo 登录。之后严格按照 Skill 调用 oumomo-agent：根据我的商品链接、品类或参考视频推荐真实可访问的爆款视频；确认参考方向和商品素材后，整理复刻 Prompt 与生成参数供我确认；只有在我明确确认后才提交视频生成。不要调用远程 Agent 或 Chat 接口。
+Install the Skill and CLI first, then let me sign in to Oumomo in my browser. Follow the Skill and use oumomo-agent to recommend accessible viral reference videos from my product link, category, or reference video. After I choose a direction and provide product assets, prepare the remake prompt and generation settings for my review. Submit a generation request only after I explicitly confirm it. Do not call a remote Agent or Chat endpoint.
 ```
 
 The published skill is available at
@@ -52,7 +54,7 @@ The published skill is available at
 Start with a product category, product link, or a reference video:
 
 ```text
-帮我找适合美白牙贴的美国 TikTok 爆款视频，并复刻一条带货视频。
+Find high-performing US TikTok references for teeth-whitening strips and remake one as a product video.
 ```
 
 Oumomo will:
@@ -69,11 +71,14 @@ Oumomo will:
 
 ## Product link to video
 
-Product links:
+One product link can become a complete, conversion-ready video brief. Send any
+of these TikTok product links to your agent to experience the workflow: Oumomo
+will understand the product, recommend relevant viral references, prepare the
+creative direction, and generate only after you approve the final plan.
 
-- [https://vt.tiktok.com/ZSVVr1T8A/](https://vt.tiktok.com/ZSVVr1T8A/)
-- [https://vt.tiktok.com/ZSVVr2gaA/](https://vt.tiktok.com/ZSVVr2gaA/)
-- [https://vt.tiktok.com/ZSVVMt7wT/](https://vt.tiktok.com/ZSVVMt7wT/)
+- [Try product example 1](https://vt.tiktok.com/ZSVVr1T8A/)
+- [Try product example 2](https://vt.tiktok.com/ZSVVr2gaA/)
+- [Try product example 3](https://vt.tiktok.com/ZSVVMt7wT/)
 
 ## What you control
 
