@@ -1,64 +1,107 @@
-# Oumomo Agent CLI
+# Oumomo Video Agent
 
-`oumomo-agent` is a thin Node.js 20+ client for the published
-`oumomo-video-replica` skill. It stores the local OAuth session, uploads image
-files, and forwards allowlisted tool calls to Oumomo's hosted API.
+[![npm version](https://img.shields.io/npm/v/oumomo-agent.svg)](https://www.npmjs.com/package/oumomo-agent)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
 
-It only includes browser login, local credential storage, image upload, and
-allowlisted HTTP tool calls. All business execution stays on Oumomo servers.
+Turn proven ecommerce content into your next product video, directly from your
+AI agent.
 
-## Install
+Oumomo gives Codex and other skill-compatible agents two production workflows:
+
+- **Viral video remake**: discover relevant high-performing reference videos,
+  choose a direction, confirm the creative and generation settings, then create
+  a new video for your product.
+- **Product link to video**: provide a supported TikTok Shop or FastMoss product
+  link and let the agent collect the product context, find suitable references,
+  and prepare a ready-to-generate video plan.
+
+The agent handles the conversation. `oumomo-agent` handles secure sign-in,
+product image uploads, and approved Oumomo tool calls. No OpenAI API key or MCP
+key is required.
+
+## Get started
+
+Requires [Node.js 20 or later](https://nodejs.org/).
 
 ```bash
-npm install
-npm run build
-node dist/bin.js --help
+npm install -g oumomo-agent && oumomo-agent setup
 ```
 
-The package has zero production dependencies. A release tarball can be
-installed without npm registry authentication:
+The setup command opens Oumomo in your browser. Sign in once, then return to
+your agent.
 
-```bash
-npm install -g ./oumomo-agent-0.1.0.tgz
-oumomo-agent setup
+## Install the skill
+
+Give the following message to Codex or another skill-compatible agent:
+
+```text
+请安装并使用 Oumomo Video Agent，帮我完成爆款视频复刻和商品链接生成视频。
+
+Skill：https://github.com/Oumomo-Video/oumomo-cli/tree/main/skills/oumomo-video-replica
+CLI：npm install -g oumomo-agent && oumomo-agent setup
+
+请先安装 Skill 和 CLI，并让我在浏览器完成 Oumomo 登录。之后严格按照 Skill 调用 oumomo-agent：根据我的商品链接、品类或参考视频推荐真实可访问的爆款视频；确认参考方向和商品素材后，整理复刻 Prompt 与生成参数供我确认；只有在我明确确认后才提交视频生成。不要调用远程 Agent 或 Chat 接口。
 ```
 
-Before the first release tarball is uploaded, the current GitHub branch can be
-installed directly:
+The published skill is available at
+[`skills/oumomo-video-replica`](skills/oumomo-video-replica/SKILL.md).
 
-```bash
-npm install -g github:Oumomo-Video/oumomo-cli
-oumomo-agent setup
+## Viral video remake
+
+Start with a product category, product link, or a reference video:
+
+```text
+帮我找适合美白牙贴的美国 TikTok 爆款视频，并复刻一条带货视频。
 ```
 
-## Login and tools
+Oumomo will:
+
+1. Recommend relevant reference videos with accessible links.
+2. Let you choose the creative direction.
+3. Reuse product images from the conversation or ask you to upload them.
+4. Accept optional multi-angle white-background images, a remake Prompt, and
+   requested changes.
+5. Present duration, language, aspect ratio, quality, generation mode, and the
+   final Prompt for confirmation.
+6. Generate only after your explicit confirmation, then track the task through
+   completion.
+
+## Product link to video
+
+Send a supported product-detail link with a direct request:
+
+```text
+https://www.fastmoss.com/zh/e-commerce/detail/PRODUCT_ID 生成带货视频
+```
+
+The agent uses the product information as context, recommends suitable viral
+references, and continues through the same material, creative, confirmation,
+and generation workflow.
+
+## What you control
+
+- Reference video and creative direction
+- Product images and optional multi-angle white-background images
+- Optional remake Prompt and modification requirements
+- Duration, language, aspect ratio, quality, and generation mode
+- Final confirmation before any paid generation request
+
+## CLI commands
+
+Most users can let the installed skill operate the CLI. These commands are also
+available for inspection and troubleshooting:
 
 ```bash
-oumomo-agent setup
 oumomo-agent auth status
 oumomo-agent tool list
 oumomo-agent tool describe video_replica_search
-oumomo-agent tool video_replica_search --args '{"category":"lipstick","region":"US"}'
 ```
 
-Generation requires explicit confirmation:
+`oumomo-agent` is a lightweight client with zero production dependencies. It
+does not ship Oumomo models, prompts, adapters, or agent runtime code; business
+execution remains on Oumomo servers.
 
-```bash
-oumomo-agent tool video_replica_generate_video \
-  --confirm \
-  --args '{"videoId":"...","productImageFileNo":"...","seconds":30}'
-```
+## License
 
-The server, not this client, owns authentication policy, tool allowlists,
-model routing, prompts, billing, and task orchestration.
-
-## Skill
-
-Install `skills/oumomo-video-replica` into the user's Codex skills directory.
-The skill is the only published workflow in this repository.
-
-## Service requirement
-
-The Oumomo API must expose `/api/cli/*` before tool calls work. Until that
-server route is deployed, the client can be installed and authenticated but
-tool requests will return HTTP 404.
+[MIT](LICENSE)
