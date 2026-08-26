@@ -1,37 +1,62 @@
 ---
 name: oumomo-video-replica
-description: Use when the user wants to remake a TikTok or FastMoss reference video with their own product.
-version: "0.1.0"
+description: 通过 Oumomo CLI 从商品链接、品类或参考视频中推荐真实可访问的爆款视频；选定参考后收集商品图片、多角度白底图、复刻提示词和修改要求，确认生成参数并生成视频。
 ---
 
-# Viral Replica
+# Oumomo Viral Remake
 
-## Intent
+## Trigger
 
-Use this skill for “复刻这条视频”, “爆款复刻”, “remake this TikTok”, or
-“找一个爆款参考”。Do not use it when the user only wants written script text
-or a standalone product image.
+Use for viral ecommerce references, TikTok/FastMoss reference URLs,
+TikTok Shop/FastMoss product-detail URLs, `viral_video` selections, Link to
+Video requests, and remake requests. Do not use for standalone scripts,
+image-only generation, deduplication, or publishing.
 
-## Required inputs
+## CLI
 
-Before creating a task, collect: reference video URL, product image path or
-public upload reference, target region, output language, and duration. Ask only
-for missing values. Supported duration is 10, 15, or 30 seconds; if the user
-does not specify it, ask for confirmation with 15 seconds as the suggestion.
+Run declared adapters with `oumomo-agent tool <name> --args '<JSON>'`.
+Use `oumomo-agent image upload --file <path>` for local images. Do not call a
+remote agent or chat endpoint.
 
-Example guidance:
+## Tools
 
-> 我可以帮你做爆款复刻。请提供参考视频 URL 和商品图；另外告诉我目标市场、语言和时长（10/15/30 秒）。
+- `url_to_video_fetch_product` (only for product-detail URLs)
+- `video_replica_search`
+- `video_breakdown_by_vision` (for selected references when the Prompt needs structural evidence)
+- `video_replica_generate_video`
+- `replica_progress`
+- `replica_project_result`
+- `gpt_image2_generate` (only when the user explicitly requests image creation)
+- `image_task_status`
 
-## Commands
+## Workflow
 
-```bash
-oumomo viral-replica create \
-  --reference "<video-url>" --image "<product-image>" \
-  --region US --language EN_US --duration 15 --json
+1. If the user provides a TikTok Shop/FastMoss product-detail URL, call
+   `url_to_video_fetch_product` first and use its product/category context for
+   `video_replica_search`.
+2. For category requests, reference-video URLs, or a direct Link to Video
+   request, call `video_replica_search` as appropriate. Every displayed
+   recommendation must include its real `videoUrl`, `embedUrl`, or `url` as a
+   clickable/copyable link. Describe recommendations briefly using the returned
+   metadata and the user's actual product context.
+   If no usable link exists, ask for a reference URL.
+3. After selection or a user-supplied reference-video URL, use
+   `video_breakdown_by_vision` when the remake Prompt needs evidence about
+   pacing, scenes, actions, or structure, then continue to material collection.
+4. Reuse product images already available in the current conversation. If no
+   product image is available, ask for one. A clean multi-angle white-background
+   image set is preferred but optional. Ask whether the user wants to provide a
+   remake Prompt or any changes; both are optional. Explicit 6/9-grid requests
+   may use `gpt_image2_generate` followed by `image_task_status`.
 
-oumomo task get --id "<task-id>" --json
-```
-
-The create command returns a `task_id`. Poll `task get` until the task is
-completed or failed. Never claim completion before the status response says so.
+   Chinese collection copy when product images already exist: `已收到商品图。你也可以补充多角度白底图、复刻 Prompt 或想调整的地方；这些都可以不填，我会根据参考视频和现有商品素材整理生成方案，再给你确认。`
+5. If the user provides a remake Prompt, preserve it and apply their requested
+   changes. Otherwise, create the Prompt from the selected reference analysis
+   and available product materials. Use an empty `userRequirements` value when
+   the user has no additional changes.
+6. Show seconds, language, ratio, quality, generation mode, Prompt, and video
+   description together for confirmation. Call
+   `video_replica_generate_video` once after structured confirmation,
+   passing the confirmed Prompt as `replicaPrompt` and requested changes as
+   `userRequirements`,
+   then poll with `replica_progress` and `replica_project_result`.

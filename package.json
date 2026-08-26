@@ -1,21 +1,46 @@
 {
-  "name": "@oumomo/cli",
+  "name": "oumomo-agent",
   "version": "0.1.0",
-  "description": "Public command-line client for Oumomo APIs.",
+  "private": false,
+  "description": "Thin CLI client for Oumomo published skills. Handles OAuth device login, image upload, and lets the Codex `oumomo-video-replica` skill call the allowlisted tools through Oumomo's direct-tool API.",
   "type": "module",
-  "bin": { "oumomo": "dist/index.js" },
-  "files": ["dist", "skills", "connectors", "docs", "capabilities.json", "README.md", "LICENSE", "SECURITY.md"],
-  "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "tsx src/index.ts",
-    "check:public": "node scripts/check-public.mjs",
-    "test": "tsx --test tests/*.test.ts"
+  "bin": {
+    "oumomo-agent": "dist/bin.js"
   },
-  "engines": { "node": ">=20" },
+  "main": "./dist/bin.js",
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64",
+    "ia32"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/make-bin-executable.mjs",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "prepare": "npm run build",
+    "test:cli": "node --import tsx --test tests/*.test.ts",
+    "prepack": "npm run build && npm test",
+    "verify:size": "node scripts/verify-pack-size.mjs"
+  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.0.0",
     "tsx": "^4.7.0",
     "typescript": "^5.4.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
