@@ -69,15 +69,11 @@ Oumomo will:
 
 ## Product link to video
 
-Send a supported product-detail link with a direct request:
+Product links:
 
-```text
-https://www.fastmoss.com/zh/e-commerce/detail/PRODUCT_ID 生成带货视频
-```
-
-The agent uses the product information as context, recommends suitable viral
-references, and continues through the same material, creative, confirmation,
-and generation workflow.
+- [https://vt.tiktok.com/ZSVVr1T8A/](https://vt.tiktok.com/ZSVVr1T8A/)
+- [https://vt.tiktok.com/ZSVVr2gaA/](https://vt.tiktok.com/ZSVVr2gaA/)
+- [https://vt.tiktok.com/ZSVVMt7wT/](https://vt.tiktok.com/ZSVVMt7wT/)
 
 ## What you control
 
