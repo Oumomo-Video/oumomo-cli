@@ -30,12 +30,12 @@ npm install -g oumomo-agent && oumomo-agent setup
 将下面这段话直接发给 Codex 或其他支持技能的智能体：
 
 ```text
-请安装并使用 Oumomo CLI，帮我完成爆款视频复刻和商品链接生成视频。
+请安装并使用 Oumomo Video Agent，帮我完成爆款视频复刻和商品链接生成视频。
 
-技能地址：https://github.com/Oumomo-Video/oumomo-cli/tree/main/skills/oumomo-video-replica
-安装命令：npm install -g oumomo-agent && oumomo-agent setup
+Skill：https://github.com/Oumomo-Video/oumomo-cli/tree/main/skills/oumomo-video-replica
+CLI：npm install -g oumomo-agent && oumomo-agent setup
 
-请先安装技能和命令行工具，并让我在浏览器完成 Oumomo 登录。之后严格按照技能说明调用 oumomo-agent：根据我的商品链接、品类或参考视频，推荐真实可访问的爆款参考视频；我确认参考方向并提供商品素材后，整理复刻提示词和生成参数供我确认；只有在我明确确认后才能提交视频生成。不要调用远程智能体或聊天接口。
+请先安装 Skill 和 CLI，并让我在浏览器完成 Oumomo 登录。之后严格按照 Skill 调用 oumomo-agent：根据我的商品链接、品类或参考视频推荐真实可访问的爆款视频；确认参考方向和商品素材后，整理复刻 Prompt 与生成参数供我确认；只有在我明确确认后才提交视频生成。不要调用远程 Agent 或 Chat 接口。
 ```
 
 已发布的技能位于 [`skills/oumomo-video-replica`](skills/oumomo-video-replica/SKILL.md)。
