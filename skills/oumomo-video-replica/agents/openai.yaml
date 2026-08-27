@@ -1,6 +1,0 @@
-interface:
-  display_name: "Oumomo Video Remake"
-  short_description: "Recommend and generate a confirmed viral video remake"
-  default_prompt: "Use $oumomo-video-replica for product links, viral references, recommendations, and confirmed video generation."
-policy:
-  allow_implicit_invocation: true

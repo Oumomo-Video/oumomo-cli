@@ -32,13 +32,17 @@ npm install -g oumomo-agent && oumomo-agent setup
 ```text
 请安装并使用 Oumomo Video Agent，帮我完成爆款视频复刻和商品链接生成视频。
 
-Skill：https://github.com/Oumomo-Video/oumomo-cli/tree/main/skills/oumomo-video-replica
+Skill：https://github.com/Oumomo-Video/oumomo-skill/tree/main/oumomo-video-replica
 CLI：npm install -g oumomo-agent && oumomo-agent setup
 
 请先安装 Skill 和 CLI，并让我在浏览器完成 Oumomo 登录。之后严格按照 Skill 调用 oumomo-agent：根据我的商品链接、品类或参考视频推荐真实可访问的爆款视频；确认参考方向和商品素材后，整理复刻 Prompt 与生成参数供我确认；只有在我明确确认后才提交视频生成。不要调用远程 Agent 或 Chat 接口。
 ```
 
-已发布的技能位于 [`skills/oumomo-video-replica`](skills/oumomo-video-replica/SKILL.md)。
+安装已发布的 Skill：
+
+```bash
+npx skills add Oumomo-Video/oumomo-skill
+```
 
 ## 爆款视频复刻
 

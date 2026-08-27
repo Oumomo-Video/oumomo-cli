@@ -137,3 +137,35 @@ dedicated Skills repository exists.
 Do not present the interim Node.js package as a native binary. Do not change
 the public README to the target commands before the corresponding artifacts
 and Skills repository are available.
+
+## Repeatable clean-room testing
+
+Use Docker for a new Linux and Node.js 20 environment on every run. The
+container does not mount the host HOME and is deleted on exit.
+
+```bash
+# Install the tarball and run non-authenticated smoke checks.
+npm run test:clean
+
+# Complete browser login against test, then use an interactive disposable shell.
+./scripts/clean-room-test.sh login
+
+# Enter a fresh shell with the CLI installed but no credentials.
+./scripts/clean-room-test.sh shell
+```
+
+In `login` mode, copy the URL printed by the container into the host browser.
+After authorization, run search, upload, and other CLI tests in the container.
+Typing `exit` destroys both the container and its Oumomo credentials.
+
+Override inputs when needed:
+
+```bash
+OUMOMO_CLI_ARTIFACT=/absolute/path/oumomo-agent.tgz \
+OUMOMO_CLI_TEST_API_URL=https://test.oumomo.ai \
+./scripts/clean-room-test.sh login
+```
+
+This covers a clean Linux user environment. A temporary HOME can cover clean
+macOS user-state behavior, but Windows still needs CI or a Windows virtual
+machine for final platform validation.
