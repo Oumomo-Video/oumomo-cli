@@ -1,8 +1,8 @@
 {
   "name": "oumomo-agent",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
-  "description": "Thin CLI client for Oumomo published skills. Handles OAuth device login, image upload, and lets the Codex `oumomo-video-replica` skill call the allowlisted tools through Oumomo's direct-tool API.",
+  "description": "Thin CLI client for published Oumomo skills with browser login, image upload, tool discovery, and allowlisted tool calls.",
   "type": "module",
   "bin": {
     "oumomo-agent": "dist/bin.js"

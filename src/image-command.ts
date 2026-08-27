@@ -119,8 +119,8 @@ export async function runImageUpload(args: ParsedCliArgs): Promise<void> {
     const detail = await readErrorBody(response);
     throw new Error(`Image upload failed (HTTP ${response.status}): ${detail}`);
   }
-  const payload = (await response.json()) as { success?: boolean; image?: unknown; error?: string };
-  if (!payload.success) {
+  const payload = (await response.json()) as { success?: boolean; ok?: boolean; image?: unknown; error?: string };
+  if (payload.success !== true && payload.ok !== true) {
     throw new Error(`Image upload rejected: ${payload.error || 'unknown server error'}`);
   }
   process.stdout.write(`${JSON.stringify({ success: true, image: payload.image }, null, 2)}\n`);

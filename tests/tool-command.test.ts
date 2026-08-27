@@ -200,7 +200,7 @@ test('tool call sends the request and prints the result', async (t) => {
       body,
     };
     return new Response(JSON.stringify({
-      success: true,
+      ok: true,
       result: { matches: [{ id: 'r1' }] },
     }), { status: 200 });
   }) as typeof fetch;

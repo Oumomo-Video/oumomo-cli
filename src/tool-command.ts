@@ -134,6 +134,7 @@ export async function runToolCall(args: ParsedCliArgs): Promise<void> {
   });
   const payload = (await response.json().catch(() => ({}))) as {
     success?: boolean;
+    ok?: boolean;
     result?: unknown;
     error?: string;
     blocked?: boolean;
@@ -148,15 +149,16 @@ export async function runToolCall(args: ParsedCliArgs): Promise<void> {
     }, null, 2)}\n`);
     throw new Error(detail);
   }
+  const succeeded = payload.success === true || payload.ok === true;
   const output = {
     tool: name,
-    success: payload.success === true,
+    success: succeeded,
     ...(payload.result !== undefined ? { result: redactValue(payload.result) } : {}),
     ...(payload.error ? { error: sanitizeCliError(payload.error) } : {}),
     ...(payload.blocked ? { blocked: true } : {}),
   };
   process.stdout.write(`${JSON.stringify(output, null, 2)}\n`);
-  if (payload.success !== true) {
+  if (!succeeded) {
     throw new Error(payload.error || `Tool failed: ${name}`);
   }
 }
