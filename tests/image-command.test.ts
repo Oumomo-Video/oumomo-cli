@@ -1,135 +1,58 @@
-import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import test from 'node:test';
 
 import { parseCliArgs } from '../src/cli-args.js';
-import { runImageUpload } from '../src/image-command.js';
 import { writeCredential } from '../src/credentials.js';
+import { runImageUpload } from '../src/image-command.js';
 
-interface CapturedRequest {
-  url: string;
-  method: string;
-  headers: Record<string, string>;
-  bodyLength: number;
-  bodyText: string;
-}
-
-async function bootstrapCredential(stateDir: string) {
-  await writeCredential({
-    apiBaseUrl: 'https://api.example.test',
-    cookie: 'token_test=opaque',
-    email: 'cli@example.com',
-  }, { env: { ...process.env, OUMOMO_CLI_STATE_DIR: stateDir } });
-}
-
-test('image upload streams a multipart body to /api/cli/image/upload', async (t) => {
-  const stateDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-agent-image-'));
-  const previousStateDir = process.env.OUMOMO_CLI_STATE_DIR;
+test('image upload uses existing presign and storage APIs', async (t) => {
+  const stateDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-image-state-'));
+  const workDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-image-file-'));
   process.env.OUMOMO_CLI_STATE_DIR = stateDir;
   t.after(async () => {
-    if (previousStateDir === undefined) delete process.env.OUMOMO_CLI_STATE_DIR;
-    else process.env.OUMOMO_CLI_STATE_DIR = previousStateDir;
+    delete process.env.OUMOMO_CLI_STATE_DIR;
     await rm(stateDir, { recursive: true, force: true });
+    await rm(workDir, { recursive: true, force: true });
   });
-
-  await bootstrapCredential(stateDir);
-
-  const workDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-agent-image-file-'));
+  await writeCredential({ apiBaseUrl: 'https://api.example.test', cookie: 'token_test=opaque', email: 'cli@example.com' });
   const imagePath = path.join(workDir, 'product.png');
-  await writeFile(imagePath, Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
-  t.after(() => rm(workDir, { recursive: true, force: true }));
+  await writeFile(imagePath, Buffer.from([0x89, 0x50, 0x4e, 0x47]));
 
-  const stdoutCapture: { buffer: string; restore: () => void } = (() => {
-    const original = process.stdout;
-    const buffer: { value: string } = { value: '' };
-    const stream = {
-      isTTY: false,
-      write(chunk: string) {
-        buffer.value += chunk;
-        return true;
-      },
-    };
-    Object.defineProperty(process, 'stdout', { value: stream, configurable: true });
-    return { buffer: buffer, restore: () => Object.defineProperty(process, 'stdout', { value: original, configurable: true }) };
-  })();
-  t.after(() => stdoutCapture.restore());
-
-  let captured: CapturedRequest | undefined;
+  const requests: Array<{ url: string; method: string; body: unknown }> = [];
   const originalFetch = globalThis.fetch;
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = String(input);
-    const method = (init?.method || 'GET').toUpperCase();
-    const headers: Record<string, string> = {};
-    if (init?.headers) {
-      const rawHeaders = init.headers as Record<string, string>;
-      for (const [key, value] of Object.entries(rawHeaders)) headers[key.toLowerCase()] = String(value);
+    requests.push({ url: String(input), method: String(init?.method), body: init?.body });
+    if (String(input).endsWith('/api/file/get_presigns')) {
+      return new Response(JSON.stringify({
+        code: 0,
+        data: { file_list: [{ file_no: 'pres_42', presign_url: 'https://storage.example/upload', headers: { 'x-test': '1' } }] },
+      }), { status: 200 });
     }
-    const bodyText = typeof init?.body === 'string'
-      ? init.body
-      : init?.body && typeof (init.body as ReadableStream).getReader === 'function'
-        ? await readStreamToText(init.body as ReadableStream<Uint8Array>)
-        : '';
-    captured = {
-      url,
-      method,
-      headers,
-      bodyLength: bodyText.length,
-      bodyText,
-    };
-    return new Response(JSON.stringify({
-      success: true,
-      image: { fileNo: 'pres_42', url: 'https://cdn.oumomo.com/x.png', fileName: 'product.png', mimeType: 'image/png', size: 8 },
-    }), { status: 200 });
+    return new Response('', { status: 200 });
   }) as typeof fetch;
   t.after(() => { globalThis.fetch = originalFetch; });
 
-  const args = parseCliArgs([
-    'image', 'upload',
-    '--file', imagePath,
-    '--api-url', 'https://api.example.test',
-  ]);
-  await runImageUpload(args);
-
-  assert.ok(captured, 'fetch should have been called');
-  assert.equal(captured!.url, 'https://api.example.test/api/cli/image/upload');
-  assert.equal(captured!.method, 'POST');
-  assert.equal(captured!.headers['content-type']?.startsWith('multipart/form-data; boundary='), true);
-  assert.ok(captured!.headers['content-length'], 'should set a precise content-length');
-  assert.ok(captured!.bodyText.includes('product.png'), 'multipart body must include filename');
-  assert.ok(captured!.bodyText.includes('Content-Disposition: form-data; name="file"'), 'multipart body must use the "file" field name');
-  assert.ok(stdoutCapture.buffer.value.includes('pres_42'), 'should print the file number from the server response');
+  await runImageUpload(parseCliArgs(['image', 'upload', '--file', imagePath, '--api-url', 'https://api.example.test']));
+  assert.equal(requests[0].url, 'https://api.example.test/api/file/get_presigns');
+  assert.equal(requests[0].method, 'POST');
+  assert.equal(requests[1].url, 'https://storage.example/upload');
+  assert.equal(requests[1].method, 'PUT');
 });
 
-async function readStreamToText(stream: ReadableStream<Uint8Array>): Promise<string> {
-  const reader = stream.getReader();
-  const decoder = new TextDecoder();
-  let buffer = '';
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) return buffer;
-    buffer += decoder.decode(value, { stream: true });
-  }
-}
-
-test('image upload rejects unsupported mime types', async (t) => {
-  const stateDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-agent-image-bad-'));
-  const previousStateDir = process.env.OUMOMO_CLI_STATE_DIR;
+test('image upload rejects unsupported file types', async (t) => {
+  const stateDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-image-bad-state-'));
+  const workDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-image-bad-file-'));
   process.env.OUMOMO_CLI_STATE_DIR = stateDir;
   t.after(async () => {
-    if (previousStateDir === undefined) delete process.env.OUMOMO_CLI_STATE_DIR;
-    else process.env.OUMOMO_CLI_STATE_DIR = previousStateDir;
+    delete process.env.OUMOMO_CLI_STATE_DIR;
     await rm(stateDir, { recursive: true, force: true });
+    await rm(workDir, { recursive: true, force: true });
   });
-
-  await bootstrapCredential(stateDir);
-
-  const workDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-agent-image-badfile-'));
+  await writeCredential({ apiBaseUrl: 'https://api.example.test', cookie: 'token_test=opaque', email: 'cli@example.com' });
   const imagePath = path.join(workDir, 'product.bmp');
-  await writeFile(imagePath, Buffer.from('BM'));
-  t.after(() => rm(workDir, { recursive: true, force: true }));
-
-  const args = parseCliArgs(['image', 'upload', '--file', imagePath]);
-  await assert.rejects(() => runImageUpload(args), /must use \.jpg/);
+  await writeFile(imagePath, 'BM');
+  await assert.rejects(() => runImageUpload(parseCliArgs(['image', 'upload', '--file', imagePath])), /must use \.jpg/);
 });

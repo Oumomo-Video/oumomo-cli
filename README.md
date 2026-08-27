@@ -71,14 +71,18 @@ Oumomo will:
 
 ## Product link to video
 
-One product link can become a complete, conversion-ready video brief. Send any
-of these TikTok product links to your agent to experience the workflow: Oumomo
-will understand the product, recommend relevant viral references, prepare the
-creative direction, and generate only after you approve the final plan.
+Send a supported TikTok Shop or FastMoss product-detail URL to let Oumomo read
+the product context, recommend relevant viral references, and prepare the video
+for your approval.
 
-- [Try product example 1](https://vt.tiktok.com/ZSVVr1T8A/)
-- [Try product example 2](https://vt.tiktok.com/ZSVVr2gaA/)
-- [Try product example 3](https://vt.tiktok.com/ZSVVMt7wT/)
+## Try a reference video
+
+Send one of these TikTok reference links together with your product image to
+start a viral remake directly:
+
+- [Try reference video 1](https://vt.tiktok.com/ZSVVr1T8A/)
+- [Try reference video 2](https://vt.tiktok.com/ZSVVr2gaA/)
+- [Try reference video 3](https://vt.tiktok.com/ZSVVMt7wT/)
 
 ## What you control
 

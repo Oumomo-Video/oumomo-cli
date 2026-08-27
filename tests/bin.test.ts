@@ -18,11 +18,9 @@ test('compact tool syntax dispatches to tool call', async () => {
     email: 'cli@example.test',
   });
   globalThis.fetch = async (_input, init) => {
-    assert.deepEqual(JSON.parse(String(init?.body)), {
-      input: { page: 1 },
-      confirm: false,
-    });
-    return new Response(JSON.stringify({ success: true, result: { items: [] } }), {
+    const form = new URLSearchParams(String(init?.body));
+    assert.equal(form.get('page'), '1');
+    return new Response(JSON.stringify({ code: 0, data: { list: [] } }), {
       status: 200,
       headers: { 'content-type': 'application/json' },
     });

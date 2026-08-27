@@ -22,12 +22,9 @@ remote agent or chat endpoint.
 
 - `url_to_video_fetch_product` (only for product-detail URLs)
 - `video_replica_search`
-- `video_breakdown_by_vision` (for selected references when the Prompt needs structural evidence)
 - `video_replica_generate_video`
 - `replica_progress`
 - `replica_project_result`
-- `gpt_image2_generate` (only when the user explicitly requests image creation)
-- `image_task_status`
 
 ## Workflow
 
@@ -35,26 +32,23 @@ remote agent or chat endpoint.
    `url_to_video_fetch_product` first and use its product/category context for
    `video_replica_search`.
 2. For category requests, reference-video URLs, or a direct Link to Video
-   request, call `video_replica_search` as appropriate. Every displayed
+   request, translate a non-English category into a concise English ecommerce
+   search term, then call `video_replica_search` as appropriate. Every displayed
    recommendation must include its real `videoUrl`, `embedUrl`, or `url` as a
    clickable/copyable link. Describe recommendations briefly using the returned
    metadata and the user's actual product context.
    If no usable link exists, ask for a reference URL.
-3. After selection or a user-supplied reference-video URL, use
-   `video_breakdown_by_vision` when the remake Prompt needs evidence about
-   pacing, scenes, actions, or structure, then continue to material collection.
-4. Reuse product images already available in the current conversation. If no
+3. Reuse product images already available in the current conversation. If no
    product image is available, ask for one. A clean multi-angle white-background
    image set is preferred but optional. Ask whether the user wants to provide a
-   remake Prompt or any changes; both are optional. Explicit 6/9-grid requests
-   may use `gpt_image2_generate` followed by `image_task_status`.
+   remake Prompt or any changes; both are optional.
 
    Chinese collection copy when product images already exist: `已收到商品图。你也可以补充多角度白底图、复刻 Prompt 或想调整的地方；这些都可以不填，我会根据参考视频和现有商品素材整理生成方案，再给你确认。`
-5. If the user provides a remake Prompt, preserve it and apply their requested
+4. If the user provides a remake Prompt, preserve it and apply their requested
    changes. Otherwise, create the Prompt from the selected reference analysis
    and available product materials. Use an empty `userRequirements` value when
    the user has no additional changes.
-6. Show seconds, language, ratio, quality, generation mode, Prompt, and video
+5. Show seconds, language, ratio, quality, generation mode, Prompt, and video
    description together for confirmation. Call
    `video_replica_generate_video` once after structured confirmation,
    passing the confirmed Prompt as `replicaPrompt` and requested changes as

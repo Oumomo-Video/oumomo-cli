@@ -1,6 +1,6 @@
 {
   "name": "oumomo-agent",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": false,
   "description": "Thin CLI client for published Oumomo skills with browser login, image upload, tool discovery, and allowlisted tool calls.",
   "type": "module",

@@ -1,271 +1,191 @@
-import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import test, { type TestContext } from 'node:test';
 
 import { parseCliArgs, type ParsedCliArgs } from '../src/cli-args.js';
-import { runToolCall, runToolDescribe, runToolList } from '../src/tool-command.js';
 import { writeCredential } from '../src/credentials.js';
+import { runToolCall, runToolDescribe, runToolList } from '../src/tool-command.js';
 
-interface CapturedRequest {
-  url: string;
-  method: string;
-  headers: Record<string, string>;
-  body?: unknown;
+function commandArgs(argv: readonly string[]): ParsedCliArgs {
+  const parsed = parseCliArgs(argv);
+  return { ...parsed, positionals: parsed.positionals.slice(1) };
 }
 
-async function bootstrapCredential(stateDir: string) {
+async function withCredential(t: TestContext): Promise<void> {
+  const stateDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-direct-tools-'));
+  process.env.OUMOMO_CLI_STATE_DIR = stateDir;
   await writeCredential({
     apiBaseUrl: 'https://api.example.test',
     cookie: 'token_test=opaque',
     email: 'cli@example.com',
-  }, { env: { ...process.env, OUMOMO_CLI_STATE_DIR: stateDir } });
+  });
+  t.after(async () => {
+    delete process.env.OUMOMO_CLI_STATE_DIR;
+    await rm(stateDir, { recursive: true, force: true });
+  });
 }
 
-function withToolSubcommand(argv: readonly string[]): ParsedCliArgs {
-  // bin.ts strips the tool subcommand (`list` / `describe` / `call`) before
-  // forwarding the args to runTool* — mirror that here.
-  const parsed = parseCliArgs(argv);
-  const [, ...rest] = parsed.positionals;
-  return { ...parsed, positionals: rest };
-}
-
-interface StdoutCapture {
-  buffer: string;
-  restore: () => void;
-}
-
-function captureStdout(): StdoutCapture {
+function captureStdout() {
   const original = process.stdout;
   const buffer = { value: '' };
-  const stream = {
-    isTTY: false,
-    write(chunk: string) {
-      buffer.value += chunk;
-      return true;
-    },
-  };
-  Object.defineProperty(process, 'stdout', { value: stream, configurable: true });
+  Object.defineProperty(process, 'stdout', {
+    configurable: true,
+    value: { isTTY: false, write(chunk: string) { buffer.value += chunk; return true; } },
+  });
   return {
-    get buffer() { return buffer.value; },
-    restore: () => Object.defineProperty(process, 'stdout', { value: original, configurable: true }),
+    buffer,
+    restore: () => Object.defineProperty(process, 'stdout', { configurable: true, value: original }),
   };
 }
 
-test('tool list forwards the cookie and prints the JSON envelope', async (t) => {
-  const stateDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-agent-tool-list-'));
-  process.env.OUMOMO_CLI_STATE_DIR = stateDir;
-  t.after(async () => {
-    delete process.env.OUMOMO_CLI_STATE_DIR;
-    await rm(stateDir, { recursive: true, force: true });
-  });
-  await bootstrapCredential(stateDir);
-
-  const out = captureStdout();
-  t.after(() => out.restore());
-
-  let captured: CapturedRequest | undefined;
+test('tool list is local and exposes only the published workflow tools', async (t) => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-    captured = {
-      url: String(input),
-      method: (init?.method || 'GET').toUpperCase(),
-      headers: normalizeHeaders(init?.headers),
-    };
-    return new Response(JSON.stringify({
-      tools: [
-        { name: 'video_replica_search', description: 'Search viral videos.', requiresConfirmation: false },
-        { name: 'video_replica_generate_video', description: 'Generate a viral remake.', requiresConfirmation: true },
-      ],
-    }), { status: 200 });
-  }) as typeof fetch;
+  globalThis.fetch = async () => { throw new Error('tool list must not use the network'); };
   t.after(() => { globalThis.fetch = originalFetch; });
+  const out = captureStdout();
+  t.after(out.restore);
 
-  await runToolList(parseCliArgs(['tool', 'list', '--api-url', 'https://api.example.test']));
-  assert.ok(captured, 'fetch must be called');
-  assert.equal(captured!.url, 'https://api.example.test/api/cli/tools');
-  assert.equal(captured!.headers['cookie'], 'token_test=opaque');
-  const parsed = JSON.parse(out.buffer);
-  assert.equal(parsed.tools.length, 2);
-  assert.equal(parsed.tools[1].requiresConfirmation, true);
+  await runToolList(parseCliArgs(['tool', 'list']));
+  const payload = JSON.parse(out.buffer.value);
+  assert.deepEqual(payload.tools.map((tool: { name: string }) => tool.name), [
+    'url_to_video_fetch_product',
+    'video_replica_search',
+    'video_replica_generate_video',
+    'replica_progress',
+    'replica_project_result',
+  ]);
 });
 
-test('tool describe rejects tools not in the allowlist before hitting the network', async (t) => {
-  const stateDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-agent-tool-describe-bad-'));
-  process.env.OUMOMO_CLI_STATE_DIR = stateDir;
-  t.after(async () => {
-    delete process.env.OUMOMO_CLI_STATE_DIR;
-    await rm(stateDir, { recursive: true, force: true });
-  });
-  await bootstrapCredential(stateDir);
+test('tool describe returns a local JSON schema', async (t) => {
   const out = captureStdout();
-  t.after(() => out.restore());
+  t.after(out.restore);
+  await runToolDescribe(commandArgs(['tool', 'describe', 'video_replica_search']));
+  const payload = JSON.parse(out.buffer.value);
+  assert.equal(payload.parameters.properties.region.type, 'string');
+  assert.equal(payload.requiresConfirmation, false);
+});
 
+test('tool call rejects tools outside the published workflow', async () => {
   await assert.rejects(
-    () => runToolDescribe(withToolSubcommand(['tool', 'describe', 'project_remove_task_material'])),
-    /not exposed by the published Oumomo skills/,
+    () => runToolCall(commandArgs(['tool', 'call', 'video_breakdown_by_vision', '--input', '{}'])),
+    /not exposed by the published Oumomo skill/,
   );
 });
 
-test('tool describe sends the right URL and prints the schema', async (t) => {
-  const stateDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-agent-tool-describe-'));
-  process.env.OUMOMO_CLI_STATE_DIR = stateDir;
-  t.after(async () => {
-    delete process.env.OUMOMO_CLI_STATE_DIR;
-    await rm(stateDir, { recursive: true, force: true });
-  });
-  await bootstrapCredential(stateDir);
-  const out = captureStdout();
-  t.after(() => out.restore());
-
-  let captured: CapturedRequest | undefined;
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-    captured = {
-      url: String(input),
-      method: (init?.method || 'GET').toUpperCase(),
-      headers: normalizeHeaders(init?.headers),
-    };
-    return new Response(JSON.stringify({
-      name: 'video_replica_search',
-      description: '',
-      requiresConfirmation: false,
-      parameters: { type: 'object', properties: { query: { type: 'string' } } },
-    }), { status: 200 });
-  }) as typeof fetch;
-  t.after(() => { globalThis.fetch = originalFetch; });
-
-  await runToolDescribe(withToolSubcommand(['tool', 'describe', 'video_replica_search', '--api-url', 'https://api.example.test']));
-  assert.equal(captured!.url, 'https://api.example.test/api/cli/tools/video_replica_search');
-  // The slim CLI injects a fallback description from its allowlist when the
-  // server response omits one.
-  const parsed = JSON.parse(out.buffer);
-  assert.match(parsed.description, /Search the Oumomo viral reference catalog/);
-});
-
-test('tool call rejects tools outside the allowlist', async (t) => {
-  const stateDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-agent-tool-call-bad-'));
-  process.env.OUMOMO_CLI_STATE_DIR = stateDir;
-  t.after(async () => {
-    delete process.env.OUMOMO_CLI_STATE_DIR;
-    await rm(stateDir, { recursive: true, force: true });
-  });
-  await bootstrapCredential(stateDir);
-  const out = captureStdout();
-  t.after(() => out.restore());
-
+test('generation requires explicit confirmation before credentials or network', async () => {
   await assert.rejects(
-    () => runToolCall(withToolSubcommand(['tool', 'call', 'project_remove_task_material', '--input', '{}'])),
-    /not exposed by the published Oumomo skills/,
-  );
-});
-
-test('tool call rejects video_replica_generate_video without --confirm', async (t) => {
-  const stateDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-agent-tool-call-confirm-'));
-  process.env.OUMOMO_CLI_STATE_DIR = stateDir;
-  t.after(async () => {
-    delete process.env.OUMOMO_CLI_STATE_DIR;
-    await rm(stateDir, { recursive: true, force: true });
-  });
-  await bootstrapCredential(stateDir);
-  const out = captureStdout();
-  t.after(() => out.restore());
-
-  await assert.rejects(
-    () => runToolCall(withToolSubcommand(['tool', 'call', 'video_replica_generate_video', '--input', '{"referenceVideoUrl":"x"}'])),
+    () => runToolCall(commandArgs(['tool', 'call', 'video_replica_generate_video', '--input', '{}'])),
     /requires explicit `--confirm`/,
   );
 });
 
-test('tool call sends the request and prints the result', async (t) => {
-  const stateDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-agent-tool-call-'));
-  process.env.OUMOMO_CLI_STATE_DIR = stateDir;
-  t.after(async () => {
-    delete process.env.OUMOMO_CLI_STATE_DIR;
-    await rm(stateDir, { recursive: true, force: true });
-  });
-  await bootstrapCredential(stateDir);
+test('video search calls the existing business API directly', async (t) => {
+  await withCredential(t);
   const out = captureStdout();
-  t.after(() => out.restore());
-
-  let captured: CapturedRequest | undefined;
+  t.after(out.restore);
+  let request: { url: string; body: string; headers: Record<string, string> } | undefined;
   const originalFetch = globalThis.fetch;
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-    const body = typeof init?.body === 'string' ? JSON.parse(init.body) : undefined;
-    captured = {
+    request = {
       url: String(input),
-      method: (init?.method || 'POST').toUpperCase(),
-      headers: normalizeHeaders(init?.headers),
-      body,
+      body: String(init?.body || ''),
+      headers: init?.headers as Record<string, string>,
     };
-    return new Response(JSON.stringify({
-      ok: true,
-      result: { matches: [{ id: 'r1' }] },
-    }), { status: 200 });
+    return new Response(JSON.stringify({ code: 0, data: { list: [{ video_id: '123' }] } }), { status: 200 });
   }) as typeof fetch;
   t.after(() => { globalThis.fetch = originalFetch; });
 
-  await runToolCall(withToolSubcommand(['tool', 'call', 'video_replica_search', '--input', '{"query":"phone"}', '--api-url', 'https://api.example.test']));
-  assert.equal(captured!.url, 'https://api.example.test/api/cli/tools/video_replica_search/call');
-  assert.equal(captured!.method, 'POST');
-  assert.equal(captured!.headers['cookie'], 'token_test=opaque');
-  assert.deepEqual(captured!.body, { input: { query: 'phone' }, confirm: false });
-  assert.ok(out.buffer.includes('matches'));
+  await runToolCall(commandArgs([
+    'tool', 'call', 'video_replica_search',
+    '--input', '{"region":"US","category":"lipstick","pagesize":6}',
+    '--api-url', 'https://api.example.test',
+  ]));
+  assert.equal(request!.url, 'https://api.example.test/api/video_clone/search_video');
+  assert.equal(request!.headers.cookie, 'token_test=opaque');
+  const form = new URLSearchParams(request!.body);
+  assert.equal(form.get('region'), 'US');
+  assert.equal(form.get('words'), 'lipstick');
+  assert.equal(form.get('pagesize'), '6');
+  assert.match(out.buffer.value, /"video_id": "123"/);
+  assert.match(out.buffer.value, /https:\/\/www\.tiktok\.com\/video\/123/);
 });
 
-test('tool call fails non-zero when the server reports an error', async (t) => {
-  const stateDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-agent-tool-call-fail-'));
-  process.env.OUMOMO_CLI_STATE_DIR = stateDir;
-  t.after(async () => {
-    delete process.env.OUMOMO_CLI_STATE_DIR;
-    await rm(stateDir, { recursive: true, force: true });
-  });
-  await bootstrapCredential(stateDir);
-  const out = captureStdout();
-  t.after(() => out.restore());
-
+test('generation calls submit_task with the confirmed direct contract', async (t) => {
+  await withCredential(t);
+  let request: { url: string; body: string } | undefined;
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = (async () => new Response(JSON.stringify({
-    success: false,
-    error: 'upstream unavailable',
-  }), { status: 200 })) as typeof fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    request = { url: String(input), body: String(init?.body || '') };
+    return new Response(JSON.stringify({ code: 0, data: { task_no: 'task_1' } }), { status: 200 });
+  }) as typeof fetch;
   t.after(() => { globalThis.fetch = originalFetch; });
+  const out = captureStdout();
+  t.after(out.restore);
 
-  await assert.rejects(
-    () => runToolCall(withToolSubcommand(['tool', 'call', 'video_replica_search', '--input', '{"query":"phone"}'])),
-    /upstream unavailable/,
-  );
+  await runToolCall(commandArgs([
+    'tool', 'call', 'video_replica_generate_video', '--confirm',
+    '--input', '{"videoId":"7670692481700203790","productImageFileNo":"pres_1","seconds":30,"lang":"EN_US","replicaPrompt":"UGC demo"}',
+    '--api-url', 'https://api.example.test',
+  ]));
+  assert.equal(request!.url, 'https://api.example.test/api/video_clone/submit_task');
+  const form = new URLSearchParams(request!.body);
+  assert.equal(form.get('video_id'), '7670692481700203790');
+  assert.equal(form.get('file_no'), 'pres_1');
+  assert.equal(form.get('seconds'), '30');
+  assert.equal(form.get('script'), '');
+  assert.match(String(form.get('product_info')), /UGC demo/);
 });
 
-test('tool call rejects malformed JSON input', async (t) => {
-  const stateDir = await mkdtemp(path.join(os.tmpdir(), 'oumomo-agent-tool-call-badjson-'));
-  process.env.OUMOMO_CLI_STATE_DIR = stateDir;
-  t.after(async () => {
-    delete process.env.OUMOMO_CLI_STATE_DIR;
-    await rm(stateDir, { recursive: true, force: true });
-  });
-  await bootstrapCredential(stateDir);
+test('generation resolves a TikTok short link with the existing resolver API', async (t) => {
+  await withCredential(t);
+  const urls: string[] = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    urls.push(String(input));
+    if (String(input).endsWith('/api/tools/get_tt_video_url')) {
+      return new Response(JSON.stringify({ code: 0, data: { status: 'DOING', video_id: '7670692481700203790' } }), { status: 200 });
+    }
+    return new Response(JSON.stringify({ code: 0, data: { task_no: 'task_short_link' } }), { status: 200 });
+  }) as typeof fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
   const out = captureStdout();
-  t.after(() => out.restore());
+  t.after(out.restore);
 
+  await runToolCall(commandArgs([
+    'tool', 'call', 'video_replica_generate_video', '--confirm',
+    '--input', '{"videoUrl":"https://vt.tiktok.com/example/","productImageFileNo":"pres_1"}',
+    '--api-url', 'https://api.example.test',
+  ]));
+  assert.equal(urls[0], 'https://api.example.test/api/tools/get_tt_video_url');
+  assert.equal(urls[1], 'https://api.example.test/api/video_clone/submit_task');
+});
+
+test('product, progress, and result tools call their existing GET APIs', async (t) => {
+  await withCredential(t);
+  const urls: string[] = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    urls.push(String(input));
+    return new Response(JSON.stringify({ code: 0, data: { ok: true } }), { status: 200 });
+  }) as typeof fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const out = captureStdout();
+  t.after(out.restore);
+
+  await runToolCall(commandArgs(['tool', 'call', 'url_to_video_fetch_product', '--input', '{"productUrl":"https://example.com/product/1"}', '--api-url', 'https://api.example.test']));
+  await runToolCall(commandArgs(['tool', 'call', 'replica_progress', '--input', '{"taskNo":"task_1"}', '--api-url', 'https://api.example.test']));
+  await runToolCall(commandArgs(['tool', 'call', 'replica_project_result', '--input', '{"taskNo":"task_1"}', '--api-url', 'https://api.example.test']));
+
+  assert.equal(urls[0], 'https://api.example.test/api/link_video/get_product_info?product_url=https%3A%2F%2Fexample.com%2Fproduct%2F1');
+  assert.equal(urls[1], 'https://api.example.test/api/video_clone/task_status?task_no=task_1');
+  assert.equal(urls[2], 'https://api.example.test/api/project/get_task_result?task_no=task_1&scene=7');
+});
+
+test('tool call rejects malformed JSON input', async () => {
   await assert.rejects(
-    () => runToolCall(withToolSubcommand(['tool', 'call', 'video_replica_search', '--input', 'not json'])),
+    () => runToolCall(commandArgs(['tool', 'call', 'video_replica_search', '--input', 'not json'])),
     /must be a valid JSON object/,
   );
 });
-
-function normalizeHeaders(headers: HeadersInit | undefined): Record<string, string> {
-  const normalized: Record<string, string> = {};
-  if (!headers) return normalized;
-  if (headers instanceof Headers) {
-    headers.forEach((value, key) => { normalized[key.toLowerCase()] = value; });
-    return normalized;
-  }
-  if (Array.isArray(headers)) {
-    for (const [key, value] of headers) normalized[key.toLowerCase()] = String(value);
-    return normalized;
-  }
-  for (const [key, value] of Object.entries(headers)) normalized[key.toLowerCase()] = String(value);
-  return normalized;
-}

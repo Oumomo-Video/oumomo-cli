@@ -1,139 +1,85 @@
-/**
- * `oumomo-agent image upload --file <path>`
- *
- * Streams the local file as multipart/form-data to the Oumomo direct-tool
- * endpoint `/api/cli/image/upload`. The credential's session cookie is
- * forwarded for authentication; the server is responsible for the actual
- * presign + PUT + register dance.
- *
- * The body is sent as a streaming ReadableStream so a 50 MB product image
- * never results in two copies in memory. We also set a pre-computed
- * `Content-Length` so the server can stream the upload without buffering.
- */
-import { createReadStream } from 'node:fs';
-import { stat } from 'node:fs/promises';
-import { randomBytes } from 'node:crypto';
+import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import { resolveApiBaseUrl } from './api-base.js';
 import { getOption } from './cli-args.js';
 import { readCredential } from './credentials.js';
-import { sanitizeCliError } from './redactor.js';
 import type { ParsedCliArgs } from './cli-args.js';
 
-const DEFAULT_MAX_IMAGE_BYTES = 50 * 1024 * 1024;
-const SUPPORTED_IMAGE_MIME_TYPES: Readonly<Record<string, string>> = {
+const MAX_IMAGE_BYTES = 50 * 1024 * 1024;
+const MIME_TYPES: Readonly<Record<string, string>> = {
   '.jpeg': 'image/jpeg',
   '.jpg': 'image/jpeg',
   '.png': 'image/png',
   '.webp': 'image/webp',
 };
 
-function detectMimeType(filePath: string): string {
-  const extension = path.extname(filePath).toLowerCase();
-  const mimeType = SUPPORTED_IMAGE_MIME_TYPES[extension];
-  if (!mimeType) {
-    throw new Error('Images must use .jpg, .jpeg, .png, or .webp.');
+function uploadHeaders(meta: Record<string, unknown>, mimeType: string): Record<string, string> {
+  const signed = (meta.header || meta.headers || {}) as Record<string, unknown>;
+  const headers: Record<string, string> = {};
+  for (const [key, value] of Object.entries(signed)) {
+    if (value === undefined || value === null) continue;
+    if (['content-length', 'host', 'user-agent'].includes(key.toLowerCase())) continue;
+    headers[key] = String(value);
   }
-  return mimeType;
-}
-
-function escapeQuotes(value: string): string {
-  return value.replace(/[\\"]/g, (match) => `\\${match}`);
-}
-
-function buildMultipartPreamble(boundary: string, fileName: string, mimeType: string): Buffer {
-  return Buffer.from(
-    `--${boundary}\r\n`
-      + `Content-Disposition: form-data; name="file"; filename="${escapeQuotes(fileName)}"\r\n`
-      + `Content-Type: ${mimeType}\r\n\r\n`,
-    'utf8',
-  );
-}
-
-function buildMultipartEpilogue(boundary: string): Buffer {
-  return Buffer.from(`\r\n--${boundary}--\r\n`, 'utf8');
-}
-
-function generateBoundary(): string {
-  return `oumomo-agent-${Date.now().toString(36)}-${randomBytes(8).toString('hex')}`;
+  if (!Object.keys(headers).some((key) => key.toLowerCase() === 'content-type')) {
+    headers['content-type'] = mimeType;
+  }
+  return headers;
 }
 
 export async function runImageUpload(args: ParsedCliArgs): Promise<void> {
   const filePath = getOption(args, 'file');
-  if (!filePath) {
-    throw new Error('`image upload` requires `--file <path>`.');
-  }
-  const apiBaseUrl = resolveApiBaseUrl(getOption(args, 'api-url'));
+  if (!filePath) throw new Error('`image upload` requires `--file <path>`.');
   const credential = await readCredential();
-  if (!credential) {
-    throw new Error('No Oumomo CLI session is available. Run `oumomo-agent setup` first.');
-  }
+  if (!credential) throw new Error('No Oumomo CLI session is available. Run `oumomo-agent setup` first.');
 
   const absolutePath = path.resolve(filePath);
   const metadata = await stat(absolutePath);
   if (!metadata.isFile()) throw new Error(`Image is not a file: ${absolutePath}`);
-  if (metadata.size > DEFAULT_MAX_IMAGE_BYTES) {
-    throw new Error('Images larger than 50 MiB are not accepted by the CLI transport.');
-  }
-  const mimeType = detectMimeType(absolutePath);
+  if (metadata.size <= 0 || metadata.size > MAX_IMAGE_BYTES) throw new Error('Image size must be between 1 byte and 50 MiB.');
+  const mimeType = MIME_TYPES[path.extname(absolutePath).toLowerCase()];
+  if (!mimeType) throw new Error('Images must use .jpg, .jpeg, .png, or .webp.');
   const fileName = path.basename(absolutePath);
+  const apiBaseUrl = resolveApiBaseUrl(getOption(args, 'api-url'));
 
-  const boundary = generateBoundary();
-  const preamble = buildMultipartPreamble(boundary, fileName, mimeType);
-  const epilogue = buildMultipartEpilogue(boundary);
-  const contentLength = preamble.byteLength + metadata.size + epilogue.byteLength;
-
-  const body = new ReadableStream<Uint8Array>({
-    start(controller) {
-      controller.enqueue(new Uint8Array(preamble.buffer, preamble.byteOffset, preamble.byteLength));
-      const fileStream = createReadStream(absolutePath);
-      fileStream.on('data', (chunk: Buffer | string) => {
-        const buffer = typeof chunk === 'string' ? Buffer.from(chunk) : chunk;
-        controller.enqueue(new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength));
-      });
-      fileStream.on('error', (error) => controller.error(error));
-      fileStream.on('end', () => {
-        controller.enqueue(new Uint8Array(epilogue.buffer, epilogue.byteOffset, epilogue.byteLength));
-        controller.close();
-      });
-    },
-  });
-
-  const response = await fetch(new URL('/api/cli/image/upload', `${apiBaseUrl}/`), {
+  const presignResponse = await fetch(new URL('/api/file/get_presigns', `${apiBaseUrl}/`), {
     method: 'POST',
     headers: {
       accept: 'application/json',
+      'content-type': 'application/json',
       cookie: credential.cookie,
-      source: 'oumomo-agent-cli',
-      'content-type': `multipart/form-data; boundary=${boundary}`,
-      'content-length': String(contentLength),
+      source: 'pc',
     },
-    body,
-    // fetch in Node 20 will not buffer ReadableStream bodies if a
-    // content-length header is provided.
-    duplex: 'half',
-  } as RequestInit);
-
-  if (!response.ok) {
-    const detail = await readErrorBody(response);
-    throw new Error(`Image upload failed (HTTP ${response.status}): ${detail}`);
-  }
-  const payload = (await response.json()) as { success?: boolean; ok?: boolean; image?: unknown; error?: string };
-  if (payload.success !== true && payload.ok !== true) {
-    throw new Error(`Image upload rejected: ${payload.error || 'unknown server error'}`);
-  }
-  process.stdout.write(`${JSON.stringify({ success: true, image: payload.image }, null, 2)}\n`);
-}
-
-function readErrorBody(response: Response): Promise<string> {
-  return response.text().then((raw) => {
-    if (!raw) return response.statusText || 'empty response body';
-    try {
-      const parsed = JSON.parse(raw) as { msg?: unknown; error?: unknown; message?: unknown };
-      return String(parsed.msg || parsed.error || parsed.message || raw).slice(0, 500);
-    } catch {
-      return sanitizeCliError(raw).slice(0, 500);
-    }
+    body: JSON.stringify({
+      file_list: [{ type: 'img', file_name: fileName, file_size: metadata.size, file_type: mimeType }],
+      scene: 'video_clone',
+    }),
+    signal: AbortSignal.timeout(120_000),
   });
+  const presignBody = (await presignResponse.json().catch(() => ({}))) as Record<string, any>;
+  if (!presignResponse.ok || Number(presignBody.code) !== 0) {
+    throw new Error(String(presignBody.msg || `Image presign failed (HTTP ${presignResponse.status}).`));
+  }
+  const uploadMeta = presignBody.data?.file_list?.[0] as Record<string, any> | undefined;
+  if (!uploadMeta?.presign_url || !uploadMeta?.file_no) throw new Error('Image presign response is incomplete.');
+
+  const bytes = await readFile(absolutePath);
+  const uploadResponse = await fetch(String(uploadMeta.presign_url), {
+    method: 'PUT',
+    headers: uploadHeaders(uploadMeta, mimeType),
+    body: bytes,
+    signal: AbortSignal.timeout(180_000),
+  });
+  if (!uploadResponse.ok) throw new Error(`Image storage upload failed (HTTP ${uploadResponse.status}).`);
+
+  process.stdout.write(`${JSON.stringify({
+    success: true,
+    image: {
+      fileNo: String(uploadMeta.file_no),
+      fileName,
+      mimeType,
+      size: metadata.size,
+    },
+  }, null, 2)}\n`);
 }

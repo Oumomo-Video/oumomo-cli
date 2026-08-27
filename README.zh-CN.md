@@ -59,11 +59,15 @@ Oumomo 会依次完成：
 
 ## 商品链接生成视频
 
-一个商品链接，就是一条带货视频的起点。把下面任意一个 TikTok 商品链接发给你的智能体，即可体验完整流程：Oumomo 会理解商品、匹配相关爆款参考、整理创意方案，并在你确认最终方案后生成视频。
+发送支持的 TikTok Shop 或 FastMoss 商品详情链接，Oumomo 会读取商品信息、推荐相关爆款参考，并整理视频方案供你确认。
 
-- [体验商品示例 1](https://vt.tiktok.com/ZSVVr1T8A/)
-- [体验商品示例 2](https://vt.tiktok.com/ZSVVr2gaA/)
-- [体验商品示例 3](https://vt.tiktok.com/ZSVVMt7wT/)
+## 用参考视频开始复刻
+
+把下面任意一条 TikTok 参考视频和商品图片发给智能体，即可直接开始爆款复刻：
+
+- [体验参考视频 1](https://vt.tiktok.com/ZSVVr1T8A/)
+- [体验参考视频 2](https://vt.tiktok.com/ZSVVr2gaA/)
+- [体验参考视频 3](https://vt.tiktok.com/ZSVVMt7wT/)
 
 ## 由你决定
 
