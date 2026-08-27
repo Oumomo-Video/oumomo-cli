@@ -42,7 +42,7 @@ Set up Oumomo CLI so you can help me remake viral ecommerce videos and turn prod
 
 1. Install the CLI: run `npm install -g oumomo-agent`.
 2. Authenticate: run `oumomo-agent setup` and let me complete sign-in in the browser it opens.
-3. Install the companion Skill for all supported agents: run `npx skills add Oumomo-Video/oumomo-skill --skill oumomo-video-replica --agent '*' -g -y`.
+3. Install the companion Skill: run `npx skills add Oumomo-Video/oumomo-skill`.
 
 Once that is done, restart the agent and let me know when it is ready. Follow the Skill and use oumomo-agent to recommend accessible viral reference videos from my product link, category, or reference video. Submit generation only after I explicitly confirm the complete settings. Do not call a remote Agent or Chat endpoint.
 ```
@@ -50,7 +50,7 @@ Once that is done, restart the agent and let me know when it is ready. Follow th
 Install the published Skill with:
 
 ```bash
-npx skills add Oumomo-Video/oumomo-skill --skill oumomo-video-replica --agent '*' -g -y
+npx skills add Oumomo-Video/oumomo-skill
 ```
 
 ## Viral video remake
