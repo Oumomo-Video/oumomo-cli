@@ -169,7 +169,7 @@ npx skills add Oumomo-Video/oumomo-skill
 
 ## 贡献代码
 
-PR 欢迎。功能建议和用法问题请开 [Discussion](https://github.com/Oumomo-Video/oumomo-cli/discussions)，bug 请开 [Issue](https://github.com/Oumomo-Video/oumomo-cli/issues)，也可以在 [X / Twitter](https://x.com/oumomoai) 联系我们。
+PR 欢迎。功能建议、用法问题和 bug 都请开 [Issue](https://github.com/Oumomo-Video/oumomo-cli/issues)。
 
 ---
 
@@ -177,8 +177,3 @@ PR 欢迎。功能建议和用法问题请开 [Discussion](https://github.com/Ou
 
 [MIT](LICENSE)
 
----
-
-## Star 历史
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Oumomo-Video/oumomo-cli&type=Date)](https://star-history.com/#Oumomo-Video/oumomo-cli&Date)

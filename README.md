@@ -169,7 +169,7 @@ If this helps you ship more product videos, a star makes it easier for others to
 
 ## Contributing
 
-PRs welcome. For feature requests and how-to questions, open a [Discussion](https://github.com/Oumomo-Video/oumomo-cli/discussions); for bugs, open an [Issue](https://github.com/Oumomo-Video/oumomo-cli/issues). You can also ping us on [X / Twitter](https://x.com/oumomoai).
+PRs welcome. For feature requests, how-to questions, and bugs, open an [Issue](https://github.com/Oumomo-Video/oumomo-cli/issues).
 
 ---
 
@@ -177,8 +177,3 @@ PRs welcome. For feature requests and how-to questions, open a [Discussion](http
 
 [MIT](LICENSE)
 
----
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Oumomo-Video/oumomo-cli&type=Date)](https://star-history.com/#Oumomo-Video/oumomo-cli&Date)
