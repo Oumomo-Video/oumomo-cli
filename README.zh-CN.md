@@ -70,20 +70,6 @@ npx skills add Oumomo-Video/oumomo-skill
 
 ---
 
-## 工作原理
-
-```mermaid
-graph TD
-    A[用户终端] -->|npm install -g| B[oumomo-agent CLI]
-    B -->|OAuth 设备流| C[Oumomo 账号]
-    B -->|tool list / tool call| D[Oumomo 视频 API]
-    D -->|爆款参考 + 生成| E[可直接发布的视频]
-```
-
-CLI 被故意做得非常轻：prompt、adapter 和业务执行都留在 Oumomo 服务端。本地客户端只做登录、上传图片、调用已授权工具三件事。
-
----
-
 ## 爆款视频翻拍
 
 从产品类目、商品链接或参考视频开始：

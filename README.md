@@ -70,20 +70,6 @@ npx skills add Oumomo-Video/oumomo-skill
 
 ---
 
-## How it works
-
-```mermaid
-graph TD
-    A[User terminal] -->|npm install -g| B[oumomo-agent CLI]
-    B -->|OAuth device flow| C[Oumomo account]
-    B -->|tool list / tool call| D[Oumomo video API]
-    D -->|viral references + generation| E[Ready-to-publish video]
-```
-
-The CLI is intentionally thin: prompts, adapters, and business execution stay on Oumomo servers. The local client only signs you in, uploads images, and calls approved tools. It is a lightweight client with zero production dependencies.
-
----
-
 ## Viral video remake
 
 Start with a product category, product link, or reference video:
