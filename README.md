@@ -50,7 +50,6 @@ No OpenAI API key or MCP key is required—Oumomo manages the model and video ge
 - **Reads product links** — supports TikTok Shop and FastMoss product-detail URLs.
 - **Uploads product images** — reuses images from the conversation or asks for new ones.
 - **Confirms before spending** — presents duration, language, aspect ratio, quality, and final prompt before any paid generation.
-- **Runs standalone (coming soon)** — a built-in DeepSeek harness so `oumomo-agent chat` works without Codex or Claude Code.
 
 ---
 
@@ -113,7 +112,7 @@ oumomo-agent tool list
 oumomo-agent tool describe video_replica_search
 ```
 
-For programmatic or harness use, add `--json`:
+For programmatic use, add `--json`:
 
 ```bash
 oumomo-agent tool list --json
@@ -144,19 +143,6 @@ npx skills add Oumomo-Video/oumomo-skill
 
 ---
 
-## DeepSeek Harness (planned)
-
-No host agent? A built-in DeepSeek-powered agent loop is planned so the CLI can run standalone:
-
-```bash
-export DEEPSEEK_API_KEY=sk-...
-oumomo-agent chat
-```
-
-The harness will use the same public SKILL.md as its system prompt and drive the same `oumomo-agent` tools. Paid generation will still be gated by a terminal `y/N` confirmation before any charge.
-
----
-
 ## What you control
 
 - Reference video and creative direction
@@ -170,6 +156,12 @@ The harness will use the same public SKILL.md as its system prompt and drive the
 ## Star this repo
 
 If this helps you ship more product videos, a star makes it easier for others to find.
+
+<p align="center">
+  <a href="https://github.com/Oumomo-Video/oumomo-cli/stargazers">
+    <img src="docs/star-demo.gif" alt="Star Oumomo CLI" width="420" />
+  </a>
+</p>
 
 [![Star Oumomo CLI on GitHub](https://img.shields.io/github/stars/Oumomo-Video/oumomo-cli?style=social)](https://github.com/Oumomo-Video/oumomo-cli/stargazers)
 

@@ -50,7 +50,6 @@ npx skills add Oumomo-Video/oumomo-skill
 - **读取商品链接** — 支持 TikTok Shop 和 FastMoss 商品详情页链接。
 - **上传商品图** — 复用对话里的图片，或提示你上传新的商品图/多视角白底图。
 - **付费前强制确认** — 时长、语言、画幅、质量、最终 Prompt 全部确认后才提交生成。
-- **独立运行（规划中）** — 内置 DeepSeek Harness，没有 Codex / Claude Code 也能 `oumomo-agent chat` 直接用。
 
 ---
 
@@ -113,7 +112,7 @@ oumomo-agent tool list
 oumomo-agent tool describe video_replica_search
 ```
 
-给程序化或 Harness 使用加上 `--json`：
+给程序化使用加上 `--json`：
 
 ```bash
 oumomo-agent tool list --json
@@ -144,19 +143,6 @@ npx skills add Oumomo-Video/oumomo-skill
 
 ---
 
-## DeepSeek Harness（规划中）
-
-没有宿主 Agent 也能用。Oumomo CLI 计划内置由 DeepSeek 驱动的轻量 agent loop：
-
-```bash
-export DEEPSEEK_API_KEY=sk-...
-oumomo-agent chat
-```
-
-Harness 将使用同一份公开的 SKILL.md 作为 system prompt，驱动同一套 `oumomo-agent` 工具。所有付费生成仍会在终端里强制 `y/N` 确认后才扣费。
-
----
-
 ## 你控制什么
 
 - 参考视频与创意方向
@@ -170,6 +156,12 @@ Harness 将使用同一份公开的 SKILL.md 作为 system prompt，驱动同一
 ## 点亮 Star
 
 如果这个工具帮你多产出了商品视频，点个 star 能让更多人发现它。
+
+<p align="center">
+  <a href="https://github.com/Oumomo-Video/oumomo-cli/stargazers">
+    <img src="docs/star-demo.gif" alt="点亮 Oumomo CLI" width="420" />
+  </a>
+</p>
 
 [![Star Oumomo CLI on GitHub](https://img.shields.io/github/stars/Oumomo-Video/oumomo-cli?style=social)](https://github.com/Oumomo-Video/oumomo-cli/stargazers)
 
