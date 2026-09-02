@@ -8,3 +8,6 @@ coverage/
 .oumomo/
 *.log
 
+
+# npm pack artifacts (use GitHub Releases instead)
+*.tgz

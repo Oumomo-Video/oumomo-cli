@@ -1,41 +1,130 @@
-# Oumomo CLI
+<p align="center">
+  <img src="docs/oumomo-logo.jpg" width="120" alt="Oumomo logo" />
+</p>
+<h1 align="center">Oumomo CLI</h1>
+<p align="center">
+  Turn viral TikToks and product links into shoppable videos from your terminal.
+</p>
 
-[English](README.md) | [简体中文](README.zh-CN.md)
+<p align="center">
+  <a href="https://www.npmjs.com/package/oumomo-agent"><img src="https://img.shields.io/npm/v/oumomo-agent" alt="npm version" /></a>
+  <a href="https://github.com/Oumomo-Video/oumomo-cli/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Oumomo-Video/oumomo-cli" alt="License" /></a>
+  <a href="https://github.com/Oumomo-Video/oumomo-cli/stargazers"><img src="https://img.shields.io/github/stars/Oumomo-Video/oumomo-cli?style=social" alt="Stars" /></a>
+  <a href="https://github.com/Oumomo-Video/oumomo-cli/commits/main"><img src="https://img.shields.io/github/last-commit/Oumomo-Video/oumomo-cli" alt="Last commit" /></a>
+</p>
 
-[![npm version](https://img.shields.io/npm/v/oumomo-agent.svg)](https://www.npmjs.com/package/oumomo-agent)
-[![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
+<p align="center">
+  <a href="README.zh-CN.md">简体中文</a>
+</p>
 
-Turn proven ecommerce content into your next product video, directly from your
-AI agent.
+---
 
-Oumomo gives Codex and other skill-compatible agents two production workflows:
+## Why Oumomo CLI?
 
-- **Viral video remake**: discover relevant high-performing reference videos,
-  choose a direction, confirm the creative and generation settings, then create
-  a new video for your product.
-- **Product link to video**: provide a supported TikTok Shop or FastMoss product
-  link and let the agent collect the product context, find suitable references,
-  and prepare a ready-to-generate video plan.
+Oumomo CLI turns a product link or a viral TikTok reference into a ready-to-generate ecommerce video—without leaving your terminal. The agent handles the conversation; `oumomo-agent` handles secure sign-in, product image uploads, and approved Oumomo tool calls.
 
-The agent handles the conversation. `oumomo-agent` handles secure sign-in,
-product image uploads, and approved Oumomo tool calls. No OpenAI API key or MCP
-key is required.
+---
 
-## Get started
-
-Requires [Node.js 20 or later](https://nodejs.org/).
+## Quick start
 
 ```bash
-npm install -g oumomo-agent && oumomo-agent setup
+npm install -g oumomo-agent
+oumomo-agent setup
+npx skills add Oumomo-Video/oumomo-skill
 ```
 
-The setup command opens Oumomo in your browser. Sign in once, then return to
-your agent.
+Then paste this to your agent:
 
-## Install the companion Skill
+```text
+Remake a viral teeth-whitening TikTok for my product, or turn this TikTok Shop link into a video.
+```
 
-Give the following message to Codex or another skill-compatible agent:
+No OpenAI API key or MCP key is required—Oumomo manages the model and video generation backend.
+
+---
+
+## What it does
+
+- **Finds proven reference videos** — recommends real, accessible viral TikToks for your product and target market.
+- **Clones viral DNA** — turns a chosen reference into a shoppable remake for your product.
+- **Reads product links** — supports TikTok Shop and FastMoss product-detail URLs.
+- **Uploads product images** — reuses images from the conversation or asks for new ones.
+- **Confirms before spending** — presents duration, language, aspect ratio, quality, and final prompt before any paid generation.
+- **Runs standalone (coming soon)** — a built-in DeepSeek harness so `oumomo-agent chat` works without Codex or Claude Code.
+
+---
+
+## How it works
+
+```mermaid
+graph TD
+    A[User terminal] -->|npm install -g| B[oumomo-agent CLI]
+    B -->|OAuth device flow| C[Oumomo account]
+    B -->|tool list / tool call| D[Oumomo video API]
+    D -->|viral references + generation| E[Ready-to-publish video]
+```
+
+The CLI is intentionally thin: prompts, adapters, and business execution stay on Oumomo servers. The local client only signs you in, uploads images, and calls approved tools. It is a lightweight client with zero production dependencies.
+
+---
+
+## Viral video remake
+
+Start with a product category, product link, or reference video:
+
+```text
+Find high-performing US TikTok references for teeth-whitening strips and remake one as a product video.
+```
+
+Oumomo will:
+
+1. Recommend relevant reference videos with accessible links.
+2. Let you choose the creative direction.
+3. Reuse product images from the conversation or ask you to upload them.
+4. Accept optional multi-angle white-background images, a remake prompt, and requested changes.
+5. Present duration, language, aspect ratio, quality, generation mode, and the final prompt for confirmation.
+6. Generate only after your explicit confirmation, then track the task through completion.
+
+---
+
+## Product link to video
+
+Send a supported TikTok Shop or FastMoss product-detail URL. Oumomo reads the product context, recommends viral references, and prepares the video for your approval.
+
+---
+
+## Try a reference video
+
+Send one of these TikTok reference links together with your product image to start a viral remake:
+
+- [Try reference video 1](https://vt.tiktok.com/ZSVVr1T8A/)
+- [Try reference video 2](https://vt.tiktok.com/ZSVVr2gaA/)
+- [Try reference video 3](https://vt.tiktok.com/ZSVVMt7wT/)
+
+---
+
+## CLI commands
+
+Most users let the installed skill drive the CLI. These commands are also available for inspection and troubleshooting:
+
+```bash
+oumomo-agent auth status
+oumomo-agent tool list
+oumomo-agent tool describe video_replica_search
+```
+
+For programmatic or harness use, add `--json`:
+
+```bash
+oumomo-agent tool list --json
+oumomo-agent tool call video_replica_search --json '{"query":"teeth whitening strips"}'
+```
+
+---
+
+## Claude Code / AI Agent integration
+
+Give this message to Codex, Claude Code, or any skill-compatible agent:
 
 ```text
 Set up Oumomo CLI so you can help me remake viral ecommerce videos and turn product links into videos.
@@ -47,70 +136,57 @@ Set up Oumomo CLI so you can help me remake viral ecommerce videos and turn prod
 Once that is done, restart the agent and let me know when it is ready. Follow the Skill and use oumomo-agent to recommend accessible viral reference videos from my product link, category, or reference video. Submit generation only after I explicitly confirm the complete settings. Do not call a remote Agent or Chat endpoint.
 ```
 
-Install the published Skill with:
+Install the Skill directly:
 
 ```bash
 npx skills add Oumomo-Video/oumomo-skill
 ```
 
-## Viral video remake
+---
 
-Start with a product category, product link, or a reference video:
+## DeepSeek Harness (planned)
 
-```text
-Find high-performing US TikTok references for teeth-whitening strips and remake one as a product video.
+No host agent? A built-in DeepSeek-powered agent loop is planned so the CLI can run standalone:
+
+```bash
+export DEEPSEEK_API_KEY=sk-...
+oumomo-agent chat
 ```
 
-Oumomo will:
+The harness will use the same public SKILL.md as its system prompt and drive the same `oumomo-agent` tools. Paid generation will still be gated by a terminal `y/N` confirmation before any charge.
 
-1. Recommend relevant reference videos with accessible links.
-2. Let you choose the creative direction.
-3. Reuse product images from the conversation or ask you to upload them.
-4. Accept optional multi-angle white-background images, a remake Prompt, and
-   requested changes.
-5. Present duration, language, aspect ratio, quality, generation mode, and the
-   final Prompt for confirmation.
-6. Generate only after your explicit confirmation, then track the task through
-   completion.
-
-## Product link to video
-
-Send a supported TikTok Shop or FastMoss product-detail URL to let Oumomo read
-the product context, recommend relevant viral references, and prepare the video
-for your approval.
-
-## Try a reference video
-
-Send one of these TikTok reference links together with your product image to
-start a viral remake directly:
-
-- [Try reference video 1](https://vt.tiktok.com/ZSVVr1T8A/)
-- [Try reference video 2](https://vt.tiktok.com/ZSVVr2gaA/)
-- [Try reference video 3](https://vt.tiktok.com/ZSVVMt7wT/)
+---
 
 ## What you control
 
 - Reference video and creative direction
 - Product images and optional multi-angle white-background images
-- Optional remake Prompt and modification requirements
+- Optional remake prompt and modification requirements
 - Duration, language, aspect ratio, quality, and generation mode
 - Final confirmation before any paid generation request
 
-## CLI commands
+---
 
-Most users can let the installed skill operate the CLI. These commands are also
-available for inspection and troubleshooting:
+## Star this repo
 
-```bash
-oumomo-agent auth status
-oumomo-agent tool list
-oumomo-agent tool describe video_replica_search
-```
+If this helps you ship more product videos, a star makes it easier for others to find.
 
-`oumomo-agent` is a lightweight client with zero production dependencies. It
-does not ship Oumomo models, prompts, adapters, or agent runtime code; business
-execution remains on Oumomo servers.
+[![Star Oumomo CLI on GitHub](https://img.shields.io/github/stars/Oumomo-Video/oumomo-cli?style=social)](https://github.com/Oumomo-Video/oumomo-cli/stargazers)
+
+---
+
+## Contributing
+
+PRs welcome. For feature requests and how-to questions, open a [Discussion](https://github.com/Oumomo-Video/oumomo-cli/discussions); for bugs, open an [Issue](https://github.com/Oumomo-Video/oumomo-cli/issues). You can also ping us on [X / Twitter](https://x.com/oumomoai).
+
+---
 
 ## License
 
 [MIT](LICENSE)
+
+---
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Oumomo-Video/oumomo-cli&type=Date)](https://star-history.com/#Oumomo-Video/oumomo-cli&Date)
