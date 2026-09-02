@@ -30,19 +30,33 @@ Oumomo takes the video that already sells and rebuilds it around **your** produc
 
 ## Quick start
 
+Copy this and give it to Codex, Claude Code, or any skill-compatible agent — it installs the CLI, signs you in, and installs the Skill for you:
+
+```text
+Set up Oumomo CLI so you can help me remake viral ecommerce videos and turn product links into videos.
+
+1. Install the CLI: run `npm install -g oumomo-agent`.
+2. Authenticate: run `oumomo-agent setup` and let me complete sign-in in the browser it opens.
+3. Install the companion Skill: run `npx skills add Oumomo-Video/oumomo-skill`.
+
+Once that is done, restart the agent and let me know when it is ready.
+```
+
+Once it is set up, just talk:
+
+```text
+Remake this viral teeth-whitening TikTok for my product, or turn this TikTok Shop link into a video.
+```
+
+No OpenAI API key or MCP key is required—Oumomo manages the model and video generation backend.
+
+**Prefer to install manually?**
+
 ```bash
 npm install -g oumomo-agent
 oumomo-agent setup
 npx skills add Oumomo-Video/oumomo-skill
 ```
-
-Then paste this to your agent:
-
-```text
-Remake a viral teeth-whitening TikTok for my product, or turn this TikTok Shop link into a video.
-```
-
-No OpenAI API key or MCP key is required—Oumomo manages the model and video generation backend.
 
 ---
 
@@ -126,16 +140,10 @@ oumomo-agent tool call video_replica_search --json '{"query":"teeth whitening st
 
 ## Claude Code / AI Agent integration
 
-Give this message to Codex, Claude Code, or any skill-compatible agent:
+The Quick start message above works with Codex, Claude Code, and any skill-compatible agent. For the full bootstrap with guardrails, extend it with:
 
 ```text
-Set up Oumomo CLI so you can help me remake viral ecommerce videos and turn product links into videos.
-
-1. Install the CLI: run `npm install -g oumomo-agent`.
-2. Authenticate: run `oumomo-agent setup` and let me complete sign-in in the browser it opens.
-3. Install the companion Skill: run `npx skills add Oumomo-Video/oumomo-skill`.
-
-Once that is done, restart the agent and let me know when it is ready. Follow the Skill and use oumomo-agent to recommend accessible viral reference videos from my product link, category, or reference video. Submit generation only after I explicitly confirm the complete settings. Do not call a remote Agent or Chat endpoint.
+Follow the Skill and use oumomo-agent to recommend accessible viral reference videos from my product link, category, or reference video. Submit generation only after I explicitly confirm the complete settings. Do not call a remote Agent or Chat endpoint.
 ```
 
 Install the Skill directly:

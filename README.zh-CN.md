@@ -30,19 +30,33 @@ Oumomo 的做法是：把那条**已经被市场验证过**的视频，换成**�
 
 ## 快速开始
 
+把下面这段话直接丢给 Codex、Claude Code 或任何支持 Skill 的 Agent——装 CLI、浏览器登录、装 Skill，它全包了：
+
+```text
+帮我配置好 Oumomo CLI，这样你可以帮我翻拍爆款电商视频，也可以把商品链接转成视频。
+
+1. 安装 CLI：运行 `npm install -g oumomo-agent`。
+2. 登录授权：运行 `oumomo-agent setup`，让我在弹出的浏览器里完成登录。
+3. 安装配套 Skill：运行 `npx skills add Oumomo-Video/oumomo-skill`。
+
+完成后重启 Agent 并告诉我已就绪。
+```
+
+装好之后，直接说人话：
+
+```text
+把这条爆款牙齿美白 TikTok 翻拍成我的商品视频，或者把这个 TikTok Shop 链接变成视频。
+```
+
+不需要 OpenAI API key，也不需要 MCP key——模型和视频生成都由 Oumomo 后端托管。
+
+**想手动安装？**
+
 ```bash
 npm install -g oumomo-agent
 oumomo-agent setup
 npx skills add Oumomo-Video/oumomo-skill
 ```
-
-装好后，把下面这句话丢给你的 Agent：
-
-```text
-帮我把这条爆款牙齿美白 TikTok 翻拍成我的商品视频，或者把这个 TikTok Shop 链接变成视频。
-```
-
-不需要 OpenAI API key，也不需要 MCP key——模型和视频生成都由 Oumomo 后端托管。
 
 ---
 
@@ -126,16 +140,10 @@ oumomo-agent tool call video_replica_search --json '{"query":"teeth whitening st
 
 ## Claude Code / AI Agent 集成
 
-把下面这段直接发给 Codex、Claude Code 或任何支持 Skill 的 Agent：
+快速开始里那段话对 Codex、Claude Code 和所有支持 Skill 的 Agent 都直接可用。需要带防护条款的完整版，在后面追加这段：
 
 ```text
-帮我配置好 Oumomo CLI，这样你可以帮我翻拍爆款电商视频，也可以把商品链接转成视频。
-
-1. 安装 CLI：运行 `npm install -g oumomo-agent`。
-2. 登录授权：运行 `oumomo-agent setup`，让我在弹出的浏览器里完成登录。
-3. 安装配套 Skill：运行 `npx skills add Oumomo-Video/oumomo-skill`。
-
-完成后重启 Agent 并告诉我已就绪。接下来请用 oumomo-agent 根据我的商品链接、类目或参考视频推荐可访问的爆款参考视频。只有在我明确确认完整生成设置后，才可以提交付费生成。不要直接调用远程 Agent 或 Chat 端点。
+接下来请用 oumomo-agent 根据我的商品链接、类目或参考视频推荐可访问的爆款参考视频。只有在我明确确认完整生成设置后，才可以提交付费生成。不要直接调用远程 Agent 或 Chat 端点。
 ```
 
 也可以直接安装 Skill：
