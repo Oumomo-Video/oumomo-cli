@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly link-rot check, Monday 09:23 UTC.
+    - cron: "23 9 * * 1"
+  workflow_dispatch:
+
+jobs:
+  links:
+    name: Check docs links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run lychee
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # tiktok.com blocks bots with 403; test.oumomo.ai is an internal
+          # test environment that is not guaranteed to be publicly reachable.
+          args: >-
+            --no-progress
+            --max-retries 3
+            --exclude 'tiktok\.com'
+            --exclude 'test\.oumomo\.ai'
+            './README.md'
+            './README.zh-CN.md'
+            './SECURITY.md'
+            './docs/*.md'
+          format: markdown
+          fail: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  npm-smoke:
+    name: Verify npm install of oumomo-agent
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install from npm like a user
+        run: npm install -g oumomo-agent
+
+      - name: Binary is on PATH
+        run: command -v oumomo-agent

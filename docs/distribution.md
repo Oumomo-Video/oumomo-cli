@@ -67,7 +67,7 @@ The target repository has not been created yet. Until migration is complete,
 the canonical Skill remains at:
 
 ```text
-https://github.com/Oumomo-Video/oumomo-cli/tree/main/skills/oumomo-video-replica
+https://github.com/Oumomo-Video/oumomo-skill/tree/main/skills/oumomo-video-replica
 ```
 
 ## Target user installation
