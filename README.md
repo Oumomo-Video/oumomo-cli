@@ -3,7 +3,8 @@
 </p>
 <h1 align="center">Oumomo CLI</h1>
 <p align="center">
-  Turn viral TikToks and product links into shoppable videos from your terminal.
+  Remake proven viral TikToks around your own product — from your terminal.
+  <br/>Built for cross-border e-commerce sellers on TikTok Shop.
 </p>
 
 <p align="center">
@@ -21,7 +22,9 @@
 
 ## Why Oumomo CLI?
 
-Oumomo CLI turns a product link or a viral TikTok reference into a ready-to-generate ecommerce video—without leaving your terminal. The agent handles the conversation; `oumomo-agent` handles secure sign-in, product image uploads, and approved Oumomo tool calls.
+You've seen the viral ad for a product like yours — the hook, the pacing, the CTA that just works. Hiring a creator to reproduce it costs hundreds per video, and generic AI video tools hand you a spinning product shot that nobody clicks.
+
+Oumomo takes the video that already sells and rebuilds it around **your** product: same proven format, your images, your offer. The agent handles the conversation; `oumomo-agent` handles secure sign-in, product image uploads, and approved Oumomo tool calls — all from your terminal.
 
 ---
 
@@ -46,7 +49,7 @@ No OpenAI API key or MCP key is required—Oumomo manages the model and video ge
 ## What it does
 
 - **Finds proven reference videos** — recommends real, accessible viral TikToks for your product and target market.
-- **Clones viral DNA** — turns a chosen reference into a shoppable remake for your product.
+- **Clones what converts** — rebuilds a proven viral format around your product, ready for TikTok Shop.
 - **Reads product links** — supports TikTok Shop and FastMoss product-detail URLs.
 - **Uploads product images** — reuses images from the conversation or asks for new ones.
 - **Confirms before spending** — presents duration, language, aspect ratio, quality, and final prompt before any paid generation.
